@@ -8,6 +8,7 @@ import org.traph.fs.FileSystem;
 import org.traph.rs.net.Client;
 import org.traph.rs.net.worker.Decoder;
 import org.traph.rs.net.worker.Login;
+import org.traph.rs.net.worker.Update;
 import org.traph.util.Constant;
 import org.traph.util.Constant.Client.State;
 
@@ -20,7 +21,9 @@ public class World extends AbstractVerticle {
 	
 	private FileSystem fileSystem;
 	
-	private final Map<NetSocket, Client> clients = new HashMap<NetSocket, Client>();
+	private final Map<NetSocket, Client> clientMap = new HashMap<NetSocket, Client>();
+	
+	private final Client[] clients = new Client[2048];
 	
 	@Override
 	public void start() {
@@ -49,12 +52,24 @@ public class World extends AbstractVerticle {
 		// game / ondemand
 		getVertx().createNetServer().connectHandler(sock -> {
 			
+			// handle when a player disconnects
+			sock.closeHandler(han -> {
+				// set / get the client for the socket
+				Client client = clientMap.putIfAbsent(sock, new Client(sock));
+				if(client == null) {
+					client = clientMap.get(sock);
+				}				
+				deregister(client);
+				clientMap.remove(sock);
+			});
+			
+			// handle incoming data
 			sock.handler(buf -> {
 				
 				// set / get the client for the socket
-				Client tempClient = clients.putIfAbsent(sock, new Client(sock));
+				Client tempClient = clientMap.putIfAbsent(sock, new Client(sock));
 				if(tempClient == null) {
-					tempClient = clients.get(sock);
+					tempClient = clientMap.get(sock);
 				}
 				final Client client = tempClient;
 				
@@ -88,6 +103,9 @@ public class World extends AbstractVerticle {
 					case LOGIN:
 						// handle login
 						getVertx().executeBlocking(new Login(client, buf), res -> {
+							if(client.getState() == State.GAME) {
+								register(client);
+							}
 							sock.write(res.result());
 						});
 						break;
@@ -105,6 +123,33 @@ public class World extends AbstractVerticle {
 			
 		}).listen(43594);
 		
+		// update the world every 600 ms
+		getVertx().setPeriodic(600, id -> {
+			Update.update(this);
+		});
+		
+	}
+	
+	public boolean register(Client client) {
+		for(int i = 0; i < clients.length; ++i) {
+			if(clients[i] == null) {
+				clients[i] = client;
+				client.setIndex(i);
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void deregister(Client client) {
+		if(client.getIndex() == -1) {
+			return;
+		}
+		clients[client.getIndex()] = null;
+	}
+	
+	public Client[] getClients() {
+		return clients;
 	}
 	
 	public static void main(String[] args) {

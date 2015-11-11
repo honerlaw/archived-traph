@@ -15,6 +15,7 @@ public class Client {
 	private IsaacRandomGen isaacDecoder;
 	private IsaacRandomGen isaacEncoder;
 	private Player player;
+	private int index;
 	
 	public Client(NetSocket socket) {
 		this.socket = socket;
@@ -70,6 +71,14 @@ public class Client {
 	
 	public Player getPlayer() {
 		return player;
+	}
+	
+	public void setIndex(int index) {
+		this.index = index;
+	}
+	
+	public int getIndex() {
+		return index;
 	}
 
 }
