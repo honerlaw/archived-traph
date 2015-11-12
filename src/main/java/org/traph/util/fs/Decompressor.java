@@ -1,4 +1,4 @@
-package org.traph.fs.archive.util;
+package org.traph.util.fs;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;

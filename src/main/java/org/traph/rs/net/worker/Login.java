@@ -96,7 +96,7 @@ public class Login implements Handler<Future<Buffer>> {
 		int uid = secure.readInt();
 		String username = StringUtil.getRSString(secure);
 		String password = StringUtil.getRSString(secure);
-		client.setPlayer(new Player(uid, username, password));
+		client.getGameData().setPlayer(new Player(uid, username, password));
 
 		// make sure that the password / username is valid
 		if (password.length() < Constant.Login.MIN_PASSWORD_LENGTH || password.length() > Constant.Login.MAX_PASSWORD_LENGTH || username.isEmpty() || username.length() > Constant.Login.MAX_USERNAME_LENGTH || !username.matches("^[a-zA-Z0-9]*$")) {

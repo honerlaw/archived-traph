@@ -1,6 +1,5 @@
 package org.traph.rs.net;
 
-import org.traph.rs.model.player.Player;
 import org.traph.util.Constant.Client.State;
 import org.traph.util.security.IsaacRandomGen;
 
@@ -14,11 +13,12 @@ public class Client {
 	private long clientSeed;
 	private IsaacRandomGen isaacDecoder;
 	private IsaacRandomGen isaacEncoder;
-	private Player player;
 	private int index;
+	private GameData gameData;
 	
 	public Client(NetSocket socket) {
 		this.socket = socket;
+		this.gameData = new GameData();
 	}
 	
 	public NetSocket getSocket() {
@@ -64,21 +64,17 @@ public class Client {
 	public IsaacRandomGen getIsaacEncoder() {
 		return isaacEncoder;
 	}
-	
-	public void setPlayer(Player player) {
-		this.player = player;
-	}
-	
-	public Player getPlayer() {
-		return player;
-	}
-	
+
 	public void setIndex(int index) {
 		this.index = index;
 	}
 	
 	public int getIndex() {
 		return index;
+	}
+	
+	public GameData getGameData() {
+		return gameData;
 	}
 
 }

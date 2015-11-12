@@ -2,7 +2,7 @@ package org.traph.fs.archive;
 
 import java.io.FileNotFoundException;
 
-import org.traph.fs.archive.util.Decompressor;
+import org.traph.util.fs.Decompressor;
 
 public final class Archive {
 	

@@ -6,6 +6,10 @@ import org.traph.rs.net.Client;
 public class Update {
 	
 	public static final void update(World world) {
+		
+		// all this does is send current data to the client
+		// no data is updated here
+		
 		// we update each client in the world
 		for(Client client : world.getClients()) {
 			if(client == null) {
