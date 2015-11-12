@@ -5,7 +5,7 @@ import org.traph.util.Constant;
 import io.vertx.core.buffer.Buffer;
 
 /**
- * Allows us to write bits to the 
+ * Allows us to write bits to the Buffer
  * 
  * @author Derek
  */
@@ -16,10 +16,18 @@ public class BitBuffer {
 	
 	public BitBuffer(Buffer buffer) {
 		this.buffer = buffer;
+		this.position = -1;
+	}
+	
+	public BitBuffer start() {
 		position = buffer.getByteBuf().writerIndex() * 8;
+		return this;
 	}
 	
 	public BitBuffer put(int amount, int value) {
+		if(position == -1) {
+			throw new IllegalStateException("Bit access has not been started.");
+		}
 		if (amount < 0 || amount > 32) {
 			throw new IllegalArgumentException("Number of bits must be between 1 and 32 inclusive.");
 		}
@@ -53,9 +61,10 @@ public class BitBuffer {
 		return put(1, flag ? 1 : 0);
 	}
 	
-	public Buffer getBuffer() {
+	public BitBuffer end() {
 		buffer.getByteBuf().writerIndex((position + 7) / 8);
-		return buffer;
+		position = -1;
+		return this;
 	}
 
 }

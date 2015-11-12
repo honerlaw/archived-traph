@@ -1,5 +1,7 @@
 package org.traph.rs.net;
 
+import org.traph.rs.World;
+import org.traph.rs.net.update.UpdateBuilder;
 import org.traph.util.Constant.Client.State;
 import org.traph.util.security.IsaacRandomGen;
 
@@ -8,6 +10,7 @@ import io.vertx.core.net.NetSocket;
 public class Client {
 	
 	private final NetSocket socket;
+	private final UpdateBuilder updateBuilder;
 	private State state = State.HANDSHAKE;
 	private long serverSeed;
 	private long clientSeed;
@@ -16,13 +19,18 @@ public class Client {
 	private int index;
 	private GameData gameData;
 	
-	public Client(NetSocket socket) {
+	public Client(NetSocket socket, World world) {
 		this.socket = socket;
 		this.gameData = new GameData();
+		this.updateBuilder = new UpdateBuilder(world, this);
 	}
 	
 	public NetSocket getSocket() {
 		return socket;
+	}
+	
+	public UpdateBuilder getUpdateBuilder() {
+		return updateBuilder;
 	}
 	
 	public void setState(State state) {

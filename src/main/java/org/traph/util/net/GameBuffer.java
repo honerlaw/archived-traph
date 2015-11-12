@@ -9,7 +9,8 @@ public class GameBuffer {
 	}
 	
 	private Buffer buffer;
-	private Type type = Type.FIXED;
+	private Type type;
+	private BitBuffer bitBuffer;
 	
 	public static GameBuffer buffer() {
 		return new GameBuffer();
@@ -29,6 +30,8 @@ public class GameBuffer {
 	
 	private GameBuffer() {
 		this.buffer = Buffer.buffer();
+		this.type = Type.FIXED;
+		this.bitBuffer = new BitBuffer(Buffer.buffer());
 	}
 	
 	private GameBuffer(int opcode, Type type) {
@@ -71,8 +74,13 @@ public class GameBuffer {
 		return this;
 	}
 	
-	public BitBuffer toBitBuffer() {
-		return new BitBuffer(buffer);
+	public GameBuffer putBuffer(Buffer buffer) {
+		buffer.appendBuffer(buffer);
+		return this;
+	}
+	
+	public BitBuffer getBitBuffer() {
+		return bitBuffer;
 	}
 	
 	public Buffer getBuffer() {

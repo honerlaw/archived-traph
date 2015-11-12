@@ -8,7 +8,6 @@ import org.traph.fs.FileSystem;
 import org.traph.rs.net.Client;
 import org.traph.rs.net.worker.Decoder;
 import org.traph.rs.net.worker.Login;
-import org.traph.rs.net.worker.Update;
 import org.traph.util.Constant;
 import org.traph.util.Constant.Client.State;
 
@@ -55,11 +54,10 @@ public class World extends AbstractVerticle {
 			// handle when a player disconnects
 			sock.closeHandler(han -> {
 				// set / get the client for the socket
-				Client client = clientMap.putIfAbsent(sock, new Client(sock));
-				if(client == null) {
-					client = clientMap.get(sock);
-				}				
-				deregister(client);
+				Client client = clientMap.get(sock);
+				if(client != null) {
+					deregister(client);
+				}
 				clientMap.remove(sock);
 			});
 			
@@ -67,7 +65,7 @@ public class World extends AbstractVerticle {
 			sock.handler(buf -> {
 				
 				// set / get the client for the socket
-				Client tempClient = clientMap.putIfAbsent(sock, new Client(sock));
+				Client tempClient = clientMap.putIfAbsent(sock, new Client(sock, this));
 				if(tempClient == null) {
 					tempClient = clientMap.get(sock);
 				}
@@ -125,7 +123,22 @@ public class World extends AbstractVerticle {
 		
 		// update the world every 600 ms
 		getVertx().setPeriodic(600, id -> {
-			Update.update(this);
+			getVertx().executeBlocking(fut -> {
+				
+				// we update each client in the world
+				for(Client client : clients) {
+					if(client == null) {
+						continue;
+					}
+					
+					// updates the player
+					client.getSocket().write(client.getUpdateBuilder().getPlayerPacket());
+				}
+				
+				fut.complete();
+			}, res -> {
+				
+			});
 		});
 		
 	}
