@@ -1,23 +1,17 @@
 package org.traph.rs.model;
 
-import org.traph.rs.net.update.block.UpdateBlockManager;
+import org.traph.rs.net.update.EntityUpdate;
 
-public abstract class Entity {
+public abstract class Entity extends EntityUpdate {
 	
-	private final UpdateBlockManager updateBlockManager;
 	private Region region;
 	private MovementDirection movementDirection;
 	
 	public Entity() {
-		this.updateBlockManager = new UpdateBlockManager(this);
 		this.region = new Region(3222, 3222, 0);
 		this.movementDirection = MovementDirection.STANDING;
 	}
-	
-	public UpdateBlockManager getUpdateBlockManager() {
-		return updateBlockManager;
-	}
-	
+
 	public void setRegion(Region region) {
 		this.region = region;
 	}

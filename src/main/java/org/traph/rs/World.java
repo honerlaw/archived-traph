@@ -147,7 +147,7 @@ public class World extends AbstractVerticle {
 		for(int i = 0; i < clients.length; ++i) {
 			if(clients[i] == null) {
 				clients[i] = client;
-				client.setIndex(i);
+				client.getGameData().getPlayer().setIndex(i);
 				return true;
 			}
 		}
@@ -155,10 +155,10 @@ public class World extends AbstractVerticle {
 	}
 	
 	public void deregister(Client client) {
-		if(client.getIndex() == -1) {
+		if(client.getGameData().getPlayer() == null || client.getGameData().getPlayer().getIndex() == -1) {
 			return;
 		}
-		clients[client.getIndex()] = null;
+		clients[client.getGameData().getPlayer().getIndex()] = null;
 	}
 	
 	public Client[] getClients() {

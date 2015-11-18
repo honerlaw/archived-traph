@@ -1,30 +1,24 @@
-package org.traph.rs.net.update.player;
+package org.traph.rs.net.update.segment.player;
 
+import org.traph.rs.model.Entity;
 import org.traph.rs.model.MovementDirection;
 import org.traph.rs.model.player.Player;
-import org.traph.rs.net.Client;
-import org.traph.rs.net.update.UpdateSegment;
-import org.traph.rs.net.update.block.player.Teleport;
+import org.traph.rs.net.update.EntityUpdate.UpdateFlag;
+import org.traph.rs.net.update.segment.SegmentMovement;
 import org.traph.util.net.BitBuffer;
 import org.traph.util.net.GameBuffer;
 
-/**
- * Represents the segment for updating the player's movement
- * 
- * @author Derek
- */
-public class PlayerMovement implements UpdateSegment {
-	
-	private final Client client;
-	
-	public PlayerMovement(Client client) {
-		this.client = client;
+public class PlayerMovement extends SegmentMovement {
+
+	public PlayerMovement(Entity entity) {
+		super(entity);
 	}
 
+	@Override
 	public void build(GameBuffer buffer, boolean local) {
-		Player player = client.getGameData().getPlayer();
-		if(local && player.getUpdateBlockManager().isFlagged(Teleport.class)) {
-			player.getUpdateBlockManager().get(Teleport.class).build(client, buffer);
+		Player player = getPlayer();
+		if(local && player.isSet(UpdateFlag.TELEPORT)) {
+			player.getBlock(UpdateFlag.TELEPORT).build(buffer);
 		} else {
 			MovementDirection direction = player.getMovementDirection();
 			BitBuffer buf = buffer.getBitBuffer();
@@ -35,9 +29,9 @@ public class PlayerMovement implements UpdateSegment {
 				if(direction.isRunning()) {
 					buf.put(3, direction.getSecondary()); // if running put section direction
 				}
-				buf.put(player.getUpdateBlockManager().isAttributesUpdate()); // put attributes update
+				buf.put(player.isAttributesUpdate()); // put attributes update
 			} else {
-				if(player.getUpdateBlockManager().isAttributesUpdate()) {
+				if(player.isAttributesUpdate()) {
 					buf.put(true).put(2, 0); // we are standing
 				} else {
 					buf.put(false);

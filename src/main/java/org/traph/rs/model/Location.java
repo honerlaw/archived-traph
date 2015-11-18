@@ -29,5 +29,14 @@ public class Location {
 	public int getY() {
 		return y;
 	}
+	
+	public boolean isViewableFrom(Location other) {
+		if(other.getZ() != getZ()) {
+			return false;
+		}
+		int difX = other.getX() - getX();
+		int difY = other.getY() - getY();
+		return difX >= -15 && difX <= 14 && difY >= -15 && difY <= 14;
+	}
 
 }

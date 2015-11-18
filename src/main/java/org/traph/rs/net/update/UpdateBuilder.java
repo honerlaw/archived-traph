@@ -5,9 +5,7 @@ import java.util.Iterator;
 import org.traph.rs.World;
 import org.traph.rs.model.player.Player;
 import org.traph.rs.net.Client;
-import org.traph.rs.net.update.block.UpdateBlockManager;
-import org.traph.rs.net.update.player.PlayerAttributes;
-import org.traph.rs.net.update.player.PlayerMovement;
+import org.traph.rs.net.GameData;
 import org.traph.util.net.GameBuffer;
 
 import io.vertx.core.buffer.Buffer;
@@ -21,79 +19,85 @@ public class UpdateBuilder {
 		
 	private final World world;
 	private final Client client;
-	private final PlayerMovement playerMovement;
-	private final PlayerAttributes playerAttributes;
 	
 	public UpdateBuilder(World world, Client client) {
 		this.client = client;
 		this.world = world;
-		this.playerMovement = new PlayerMovement(client);
-		this.playerAttributes = new PlayerAttributes(client);
 	}
 	
+	/**
+	 * Builds the player update packet
+	 * 
+	 * @return The player update packet
+	 */
 	public Buffer getPlayerPacket() {
-		UpdateBlockManager manager = client.getGameData().getPlayer().getUpdateBlockManager();
 		
+		// Get the GameData and Player
+		GameData data = client.getGameData();
+		Player player = data.getPlayer();
+		
+		// The buffer holding the packet data
 		GameBuffer packet = GameBuffer.variableShort(81);
 		packet.getBitBuffer().start(); // start the bit access
 		
-		getPlayerMovement().build(packet, true);
-		if(manager.isAttributesUpdate()) {
-			getPlayerAttributes().build(packet, false, true);
+		// The buffer holding the attributes data
+		GameBuffer buffer = GameBuffer.buffer();
+		
+		// Update our players movement and attributes
+		player.getMovement().build(packet, true);
+		if(player.isAttributesUpdate()) {
+			player.getAttributes().build(buffer, false, true);
 		}
 		
-		packet.getBitBuffer().put(8, client.getGameData().getLocalPlayers().size());
+		// Notify the client with the expected number of local players
+		packet.getBitBuffer().put(8, data.getLocalPlayers().size());
 		
-		for(Iterator<Player> it = client.getGameData().getLocalPlayers().iterator(); it.hasNext(); ) {
+		// Update all of the local players
+		for(Iterator<Player> it = data.getLocalPlayers().iterator(); it.hasNext(); ) {
 			Player other = it.next();
-			
-			// if viewable
-			
-			// otherwise
-			packet.getBitBuffer().put(true).put(2, 3);
-			it.remove();
+			if(other.getRegion().getLocation().isViewableFrom(player.getRegion().getLocation())) {
+				// we can see each other so update them
+				other.getMovement().build(packet, false);
+				if(other.isAttributesUpdate()) {
+					other.getAttributes().build(buffer, false, false);
+				}
+			} else {			
+				// we can't see each other so remove them
+				packet.getBitBuffer().put(true).put(2, 3);
+				it.remove();
+			}
 		}
 		
+		// Loop through all of the players in the world and see if more have come into view
 		for(Client other : world.getClients()) {
-			if(client.getGameData().getLocalPlayers().size() >= 255) {
+			if(data.getLocalPlayers().size() >= 255) {
 				break;
 			}
 			if(other == null || other == client) {
 				continue;
 			}
+			Player otherPlayer = other.getGameData().getPlayer();
 			
-			// and viewable
-			if(!client.getGameData().getLocalPlayers().contains(other.getGameData().getPlayer())) {
-				client.getGameData().getLocalPlayers().add(other.getGameData().getPlayer());
-				// add player
+			// if they are viewable and are not in our list already
+			if(!data.getLocalPlayers().contains(other.getGameData().getPlayer()) && otherPlayer.getRegion().getLocation().isViewableFrom(player.getRegion().getLocation())) {
+				
+				// add them and update them
+				data.getLocalPlayers().add(other.getGameData().getPlayer());
+				otherPlayer.getAdd().build(packet, player);
+				otherPlayer.getAttributes().build(buffer, true, false);
 			}
-			
-			
 		}
 		
-		//client.getUpdateBuilder().
+		// append the attributes buffer
+		if(buffer.getBuffer().length() > 0) {
+			packet.getBitBuffer().put(11, 2047).end();
+			packet.putBuffer(buffer.getBuffer());
+		} else {
+			packet.getBitBuffer().end();
+		}
 		
-		// update the player movement segment for the given client
-	
-		// player, block, forceAppearance, noChat
-		
-		// update the current player
-		
-		// update other players (basically send information about other players to ourselves)
-		
-		// add / remove players from the local list
-		
-		// append the attributes (state) segment to the packet
-		
+		// return the built packet to send out
 		return packet.getBuffer();
-	}
-	
-	public PlayerMovement getPlayerMovement() {
-		return playerMovement;
-	}
-	
-	public PlayerAttributes getPlayerAttributes() {
-		return playerAttributes;
 	}
 
 }

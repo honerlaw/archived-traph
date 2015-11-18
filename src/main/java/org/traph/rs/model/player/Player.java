@@ -10,6 +10,8 @@ public class Player extends Entity {
 	
 	private final String password;
 	
+	private int index;
+	
 	public Player(int uid, String username, String password) {
 		this.uid = uid;
 		this.username = username;
@@ -26,6 +28,14 @@ public class Player extends Entity {
 	
 	public String getPassword() {
 		return password;
+	}
+	
+	public void setIndex(int index) {
+		this.index = index;
+	}
+	
+	public int getIndex() {
+		return index;
 	}
 
 }

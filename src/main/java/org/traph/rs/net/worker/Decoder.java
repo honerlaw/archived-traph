@@ -43,18 +43,17 @@ public class Decoder implements Handler<Future<Buffer>> {
 				}
 			}
 			
-			// dump the payload for now
-			for(int i = 0; i < size; ++i) {
-				buf.readByte();
-			}
+			// get the payload
+			Buffer payload = Buffer.buffer(buf.readBytes(size));
 			
 			// display the packet and its size
 			System.out.println(opcode + " " + size);
 			
+			// loop through all of the registered packet listeners
+			// and notify them that a packet has come in
 		}
 		
 		future.complete();
-		
 	}
 
 }
