@@ -15,14 +15,14 @@ public class PlayerTeleportBlock extends UpdateBlock {
 
 	public void build(GameBuffer buffer) {
 		Region region = getPlayer().getRegion();
-		buffer.getBitBuffer()
-			.put(true) // we are updating the player movement
-			.put(2, 3) // notify that we are updating placement
-			.put(2, region.getLocation().getZ()) // send z coordinate
-			.put(discardMovementQueue) // discard the movement queue?
-			.put(getPlayer().isAttributesUpdate()) // are we updating attributes as well (appearance blocks)
-			.put(7, region.getLocalLocation().getY()) // send the region y coordinate
-			.put(7, region.getLocalLocation().getZ()); // send the region x coordinate
+		buffer
+			.putBit(true) // we are updating the player movement
+			.putBits(2, 3) // notify that we are updating placement
+			.putBits(2, region.getLocation().getZ()) // send z coordinate
+			.putBit(discardMovementQueue) // discard the movement queue?
+			.putBit(getPlayer().isAttributesUpdate()) // are we updating attributes as well (appearance blocks)
+			.putBits(7, region.getLocalLocation().getY()) // send the region y coordinate
+			.putBits(7, region.getLocalLocation().getZ()); // send the region x coordinate
 	}
 
 }

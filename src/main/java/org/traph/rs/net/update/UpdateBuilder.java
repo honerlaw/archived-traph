@@ -37,8 +37,8 @@ public class UpdateBuilder {
 		Player player = data.getPlayer();
 		
 		// The buffer holding the packet data
-		GameBuffer packet = GameBuffer.variableShort(81);
-		packet.getBitBuffer().start(); // start the bit access
+		GameBuffer packet = GameBuffer.variableShort(81).startBits();
+		
 		
 		// The buffer holding the attributes data
 		GameBuffer buffer = GameBuffer.buffer();
@@ -50,7 +50,7 @@ public class UpdateBuilder {
 		}
 		
 		// Notify the client with the expected number of local players
-		packet.getBitBuffer().put(8, data.getLocalPlayers().size());
+		packet.putBits(8, data.getLocalPlayers().size());
 		
 		// Update all of the local players
 		for(Iterator<Player> it = data.getLocalPlayers().iterator(); it.hasNext(); ) {
@@ -63,7 +63,7 @@ public class UpdateBuilder {
 				}
 			} else {			
 				// we can't see each other so remove them
-				packet.getBitBuffer().put(true).put(2, 3);
+				packet.putBit(true).putBits(2, 3);
 				it.remove();
 			}
 		}
@@ -89,11 +89,11 @@ public class UpdateBuilder {
 		}
 		
 		// append the attributes buffer
-		if(buffer.getRawBuffer().getByteBuf().writerIndex() > 0) {
-			packet.getBitBuffer().put(11, 2047).end();
+		if(buffer.getRawBuffer().getByteBuf().writerIndex() > 0) {			
+			packet.putBits(11, 2047).endBits();
 			packet.putBuffer(buffer.getRawBuffer());
 		} else {
-			packet.getBitBuffer().end();
+			packet.endBits();
 		}
 		
 		// return the built packet to send out

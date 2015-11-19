@@ -18,12 +18,12 @@ public class PlayerAdd extends SegmentAdd {
 		int y = getPlayer().getRegion().getLocation().getY() - other.getRegion().getLocation().getY();
 		
 		// write the data to the buffer
-		buffer.getBitBuffer()
-			.put(11, getPlayer().getIndex()) // The client / server index
-			.put(true) // Yes, an update is required.
-			.put(true) // Discard walking queue(?)
-			.put(5, y) // write the relative y coordinate
-			.put(5, x); // write the relative x coordinate
+		buffer
+			.putBits(11, getPlayer().getIndex()) // The client / server index
+			.putBit(true) // Yes, an update is required.
+			.putBit(true) // Discard walking queue(?)
+			.putBits(5, y) // write the relative y coordinate
+			.putBits(5, x); // write the relative x coordinate
 	}
 
 }

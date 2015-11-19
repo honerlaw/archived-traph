@@ -134,7 +134,7 @@ public class World extends AbstractVerticle {
 					}
 					
 					// updates the player
-					client.getSocket().write(client.getUpdateBuilder().getPlayerPacket());
+					//client.getSocket().write(client.getUpdateBuilder().getPlayerPacket());
 				}
 				
 				fut.complete();

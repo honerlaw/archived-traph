@@ -1,4 +1,4 @@
 @ECHO OFF
 cd src
-javac -d ../bin *.java
+D:\tools\jdk-8u60\bin\javac -d ../bin *.java
 cd ..

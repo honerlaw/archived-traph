@@ -1,6 +1,7 @@
 package org.traph.util.net;
 
 import org.traph.rs.net.Client;
+import org.traph.util.Constant;
 
 import io.vertx.core.buffer.Buffer;
 
@@ -12,7 +13,7 @@ public class GameBuffer {
 	
 	private Buffer buffer;
 	private Type type;
-	private BitBuffer bitBuffer;
+	private int position;
 	
 	public static GameBuffer buffer() {
 		return new GameBuffer();
@@ -33,7 +34,6 @@ public class GameBuffer {
 	private GameBuffer() {
 		this.buffer = Buffer.buffer();
 		this.type = Type.FIXED;
-		this.bitBuffer = new BitBuffer(Buffer.buffer());
 	}
 	
 	private GameBuffer(int opcode, Type type) {
@@ -45,6 +45,54 @@ public class GameBuffer {
 		} else if(type == Type.VARIABLE_SHORT) {
 			putShort(0);
 		}
+	}
+	
+	public GameBuffer startBits() {
+		position = buffer.getByteBuf().writerIndex() * 8;
+		return this;
+	}
+	
+	public GameBuffer putBits(int amount, int value) {
+		if(position == -1) {
+			throw new IllegalStateException("Bit access has not been started.");
+		}
+		if (amount < 0 || amount > 32) {
+			throw new IllegalArgumentException("Number of bits must be between 1 and 32 inclusive.");
+		}
+
+		int bytePos = position >> 3;
+		int bitOffset = 8 - (position & 7);
+		position = position + amount;
+		
+		for (; amount > bitOffset; bitOffset = 8) {
+			byte tmp = buffer.getByte(bytePos);
+			tmp &= ~Constant.Packet.BIT_MASK[bitOffset];
+			tmp |= (value >> (amount - bitOffset)) & Constant.Packet.BIT_MASK[bitOffset];
+			buffer.setByte(bytePos++, tmp);
+			amount -= bitOffset;
+		}
+		if (amount == bitOffset) {
+			byte tmp = buffer.getByte(bytePos);
+			tmp &= ~Constant.Packet.BIT_MASK[bitOffset];
+			tmp |= value & Constant.Packet.BIT_MASK[bitOffset];
+			buffer.setByte(bytePos, tmp);
+		} else {
+			byte tmp = buffer.getByte(bytePos);
+			tmp &= ~(Constant.Packet.BIT_MASK[amount] << (bitOffset - amount));
+			tmp |= (value & Constant.Packet.BIT_MASK[amount]) << (bitOffset - amount);
+			buffer.setByte(bytePos, tmp);
+		}
+		return this;
+	}
+	
+	public GameBuffer putBit(boolean flag) {
+		return putBits(1, flag ? 1 : 0);
+	}
+	
+	public GameBuffer endBits() {
+		buffer.getByteBuf().writerIndex((position + 7) / 8);
+		position = -1;
+		return this;
 	}
 	
 	public GameBuffer put(int value) {
@@ -85,10 +133,6 @@ public class GameBuffer {
 		return this;
 	}
 	
-	public BitBuffer getBitBuffer() {
-		return bitBuffer;
-	}
-	
 	public Buffer getRawBuffer() {
 		return getBuffer(null);
 	}
@@ -98,8 +142,8 @@ public class GameBuffer {
 			buffer.setByte(0, (byte) (buffer.getByte(0) + client.getIsaacEncoder().nextInt()));
 			if(type == Type.VARIABLE_BYTE) {
 				buffer.setByte(1, (byte) (buffer.getByteBuf().writerIndex() - 2));
-			} else if(type == Type.VARIABLE_SHORT) {
-				buffer.setShort(1, (short) (buffer.getByteBuf().writerIndex() - 2));
+			} else if(type == Type.VARIABLE_SHORT) {				
+				buffer.setShort(1, (short) (buffer.getByteBuf().writerIndex() - 3));
 			}
 		}
 		return buffer;

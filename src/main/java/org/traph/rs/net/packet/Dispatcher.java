@@ -13,7 +13,6 @@ public class Dispatcher {
 	}
 	
 	public Dispatcher login(int response, int rights, int unknown) {
-		System.out.println("login");
 		client.getSocket().write(GameBuffer.buffer().put(response).put(rights).put(unknown).getRawBuffer());
 		return this;
 	}

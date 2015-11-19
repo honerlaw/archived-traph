@@ -8953,6 +8953,7 @@ public class client extends Applet_Sub1
         else
             anInt1008 = class30_sub2_sub2.method408();
         int j = class30_sub2_sub2.method419(1, 0);
+        System.out.println(j);
         if(j == 0)
             return;
         int k = class30_sub2_sub2.method419(2, 0);
@@ -9774,6 +9775,8 @@ public class client extends Applet_Sub1
     public void method134(byte byte0, int i, Class30_Sub2_Sub2 class30_sub2_sub2)
     {
         int j = class30_sub2_sub2.method419(8, 0);
+        System.out.println(j);
+        System.out.println(anInt891);
         if(j < anInt891)
         {
             for(int k = j; k < anInt891; k++)
@@ -10547,8 +10550,8 @@ public class client extends Applet_Sub1
         if(j != 9759)
             anInt1008 = class30_sub2_sub2.method408();
         anInt893 = 0;
-        method117(class30_sub2_sub2, i, (byte)5);
-        method134((byte)2, i, class30_sub2_sub2);
+        method117(class30_sub2_sub2, i, (byte)5); // update my player movement
+        method134((byte)2, i, class30_sub2_sub2); // update local player movement
         method91(class30_sub2_sub2, i, (byte)8);
         method49(i, (byte)2, class30_sub2_sub2);
         for(int k = 0; k < anInt839; k++)
