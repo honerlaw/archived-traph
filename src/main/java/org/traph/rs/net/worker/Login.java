@@ -107,9 +107,14 @@ public class Login implements Handler<Future<Buffer>> {
 		// move to the game state to start decoding incoming packets
 		client.setState(State.GAME);
 		
+		// send the login request
+		client.getDispatcher()
+			.login(2, 2, 0) // send login response
+			.mapRegion(); // send map region position
+		
 		// we successfully made it here so we technically "logged in"
 		// TODO: load player data here
-		future.complete(Buffer.buffer(3).appendByte((byte) 2).appendByte((byte) 0).appendByte((byte) 0));
+		future.complete();
 	}
 
 }

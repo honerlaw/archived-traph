@@ -36,6 +36,12 @@ public class BitBuffer {
 		int bitOffset = 8 - (position & 7);
 		position = position + amount;
 		
+		int requiredSpace = (bytePos - buffer.getByteBuf().writerIndex() + 1) + ((amount + 7) / 8);		
+		if (buffer.getByteBuf().writableBytes() < requiredSpace) {
+			Buffer old = buffer.copy();
+			buffer = Buffer.buffer(buffer.getByteBuf().writerIndex() + requiredSpace).appendBuffer(old);
+		}
+		
 		for (; amount > bitOffset; bitOffset = 8) {
 			byte tmp = buffer.getByte(bytePos);
 			tmp &= ~Constant.Packet.BIT_MASK[bitOffset];

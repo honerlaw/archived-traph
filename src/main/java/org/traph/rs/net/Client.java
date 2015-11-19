@@ -1,6 +1,7 @@
 package org.traph.rs.net;
 
 import org.traph.rs.World;
+import org.traph.rs.net.packet.Dispatcher;
 import org.traph.rs.net.update.UpdateBuilder;
 import org.traph.util.Constant.Client.State;
 import org.traph.util.security.IsaacRandomGen;
@@ -11,6 +12,7 @@ public class Client {
 	
 	private final NetSocket socket;
 	private final UpdateBuilder updateBuilder;
+	private final Dispatcher dispatcher;
 	private State state = State.HANDSHAKE;
 	private long serverSeed;
 	private long clientSeed;
@@ -22,6 +24,7 @@ public class Client {
 		this.socket = socket;
 		this.gameData = new GameData();
 		this.updateBuilder = new UpdateBuilder(world, this);
+		this.dispatcher = new Dispatcher(this);
 	}
 	
 	public NetSocket getSocket() {
@@ -74,6 +77,10 @@ public class Client {
 	
 	public GameData getGameData() {
 		return gameData;
+	}
+	
+	public Dispatcher getDispatcher() {
+		return dispatcher;
 	}
 
 }

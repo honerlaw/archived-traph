@@ -89,15 +89,15 @@ public class UpdateBuilder {
 		}
 		
 		// append the attributes buffer
-		if(buffer.getBuffer().length() > 0) {
+		if(buffer.getRawBuffer().getByteBuf().writerIndex() > 0) {
 			packet.getBitBuffer().put(11, 2047).end();
-			packet.putBuffer(buffer.getBuffer());
+			packet.putBuffer(buffer.getRawBuffer());
 		} else {
 			packet.getBitBuffer().end();
 		}
 		
 		// return the built packet to send out
-		return packet.getBuffer();
+		return packet.getBuffer(client);
 	}
 
 }

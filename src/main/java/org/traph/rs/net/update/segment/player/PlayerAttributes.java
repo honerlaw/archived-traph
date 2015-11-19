@@ -62,7 +62,7 @@ public class PlayerAttributes extends SegmentAttributes {
 		}
 		
 		// write the attributes buffer to the main buffer
-		buffer.putBuffer(temp.getBuffer());
+		buffer.putBuffer(temp.getRawBuffer());
 	}
 
 }

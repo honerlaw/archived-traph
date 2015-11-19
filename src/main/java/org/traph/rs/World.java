@@ -104,7 +104,9 @@ public class World extends AbstractVerticle {
 							if(client.getState() == State.GAME) {
 								register(client);
 							}
-							sock.write(res.result());
+							if(res.result() != null) {
+								sock.write(res.result());
+							}
 						});
 						break;
 					case GAME:						
@@ -137,7 +139,9 @@ public class World extends AbstractVerticle {
 				
 				fut.complete();
 			}, res -> {
-				
+				if(res.failed()) {
+					res.cause().printStackTrace();
+				}
 			});
 		});
 		

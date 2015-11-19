@@ -1,5 +1,7 @@
 package org.traph.util.net;
 
+import org.traph.rs.net.Client;
+
 import io.vertx.core.buffer.Buffer;
 
 public class GameBuffer {
@@ -55,6 +57,10 @@ public class GameBuffer {
 		return this;
 	}
 	
+	public GameBuffer putShortA(int value) {
+		return put(value >> 8).put(value + 128);
+	}
+	
 	public GameBuffer putInt(int value) {
 		buffer.appendInt(value);
 		return this;
@@ -83,12 +89,13 @@ public class GameBuffer {
 		return bitBuffer;
 	}
 	
-	public Buffer getBuffer() {
-		return getBuffer(false);
+	public Buffer getRawBuffer() {
+		return getBuffer(null);
 	}
 	
-	public Buffer getBuffer(boolean raw) {
-		if(!raw) {
+	public Buffer getBuffer(Client client) {
+		if(client != null) {
+			buffer.setByte(0, (byte) (buffer.getByte(0) + client.getIsaacEncoder().nextInt()));
 			if(type == Type.VARIABLE_BYTE) {
 				buffer.setByte(1, (byte) (buffer.getByteBuf().writerIndex() - 2));
 			} else if(type == Type.VARIABLE_SHORT) {
