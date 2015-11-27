@@ -65,7 +65,7 @@ public class World extends AbstractVerticle {
 			sock.handler(buf -> {
 				
 				// set / get the client for the socket
-				Client tempClient = clientMap.putIfAbsent(sock, new Client(sock, this));
+				Client tempClient = clientMap.putIfAbsent(sock, new Client(sock));
 				if(tempClient == null) {
 					tempClient = clientMap.get(sock);
 				}
@@ -125,24 +125,16 @@ public class World extends AbstractVerticle {
 		
 		// update the world every 600 ms
 		getVertx().setPeriodic(600, id -> {
-			getVertx().executeBlocking(fut -> {
 				
-				// we update each client in the world
-				for(Client client : clients) {
-					if(client == null) {
-						continue;
-					}
-					
-					// updates the player
-					//client.getSocket().write(client.getUpdateBuilder().getPlayerPacket());
+			// we update each client in the world
+			for(Client client : clients) {
+				if(client == null) {
+					continue;
 				}
 				
-				fut.complete();
-			}, res -> {
-				if(res.failed()) {
-					res.cause().printStackTrace();
-				}
-			});
+				client.getDispatcher().playerUpdate(World.this);
+				client.getGameData().getPlayer().reset();
+			}
 		});
 		
 	}

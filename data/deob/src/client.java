@@ -10650,6 +10650,7 @@ public class client extends Applet_Sub1
                 }
             if(i < anInt1007)
                 return false;
+            System.out.println("packet: " + anInt1008 + " size: " + anInt1007);
             aClass30_Sub2_Sub2_1083.anInt1406 = 0;
             aClass24_1168.method270(aClass30_Sub2_Sub2_1083.aByteArray1405, 0, anInt1007);
             anInt1009 = 0;
@@ -10854,6 +10855,7 @@ public class client extends Applet_Sub1
                 {
                     l2 = aClass30_Sub2_Sub2_1083.method435(true);
                     i11 = aClass30_Sub2_Sub2_1083.method410();
+                    System.out.println(l2 + " " + i11);
                     aBoolean1159 = false;
                 }
                 if(anInt1008 == 241)

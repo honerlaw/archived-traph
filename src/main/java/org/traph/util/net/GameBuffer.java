@@ -100,6 +100,10 @@ public class GameBuffer {
 		return this;
 	}
 	
+	public GameBuffer putC(int value) {
+		return put(-value);
+	}
+	
 	public GameBuffer putShort(int value) {
 		buffer.appendShort((short) value);
 		return this;
@@ -129,7 +133,7 @@ public class GameBuffer {
 	}
 	
 	public GameBuffer putBuffer(Buffer buffer) {
-		buffer.appendBuffer(buffer);
+		this.buffer.appendBuffer(buffer);
 		return this;
 	}
 	
@@ -143,7 +147,7 @@ public class GameBuffer {
 			if(type == Type.VARIABLE_BYTE) {
 				buffer.setByte(1, (byte) (buffer.getByteBuf().writerIndex() - 2));
 			} else if(type == Type.VARIABLE_SHORT) {				
-				buffer.setShort(1, (short) (buffer.getByteBuf().writerIndex() - 3));
+				buffer.setShort(1, (short) (buffer.getByteBuf().writerIndex() - 3));				
 			}
 		}
 		return buffer;

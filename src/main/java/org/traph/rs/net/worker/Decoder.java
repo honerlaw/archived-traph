@@ -44,7 +44,7 @@ public class Decoder implements Handler<Future<Buffer>> {
 			}
 			
 			// get the payload
-			Buffer payload = Buffer.buffer(buf.readBytes(size));
+			buf.readBytes(size);
 			
 			// display the packet and its size
 			//System.out.println(opcode + " " + size);

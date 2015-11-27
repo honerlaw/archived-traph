@@ -13,6 +13,7 @@ public class PlayerTeleportBlock extends UpdateBlock {
 		super(entity);
 	}
 
+	@Override
 	public void build(GameBuffer buffer) {
 		Region region = getPlayer().getRegion();
 		buffer
@@ -22,7 +23,7 @@ public class PlayerTeleportBlock extends UpdateBlock {
 			.putBit(discardMovementQueue) // discard the movement queue?
 			.putBit(getPlayer().isAttributesUpdate()) // are we updating attributes as well (appearance blocks)
 			.putBits(7, region.getLocalLocation().getY()) // send the region y coordinate
-			.putBits(7, region.getLocalLocation().getZ()); // send the region x coordinate
+			.putBits(7, region.getLocalLocation().getX()); // send the region x coordinate
 	}
 
 }

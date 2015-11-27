@@ -55,9 +55,9 @@ public class PlayerAppearanceBlock extends UpdateBlock {
 		block
 			.putLong(StringUtil.getStringAsLong(getPlayer().getUsername())) // username
 			.put(3) // combat level
-			.put(0); // total level
+			.putShort(0); // total level
 		
-		buffer.put(block.getRawBuffer().getByteBuf().writerIndex());
+		buffer.putC(block.getRawBuffer().getByteBuf().writerIndex());
 		buffer.putBuffer(block.getRawBuffer());
 	}
 

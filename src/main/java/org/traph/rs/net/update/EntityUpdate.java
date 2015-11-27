@@ -31,7 +31,7 @@ public abstract class EntityUpdate {
 	private SegmentAdd add;
 	
 	public EntityUpdate() {
-		this.flags = EnumSet.allOf(UpdateFlag.class);
+		this.flags = EnumSet.noneOf(UpdateFlag.class);
 		this.blocks = new HashMap<UpdateFlag, UpdateBlock>();
 		if(this instanceof Player) {
 			this.attributes = new PlayerAttributes((Entity) this);
@@ -51,17 +51,17 @@ public abstract class EntityUpdate {
 		return blocks.get(flag);
 	}
 	
-	public boolean set(UpdateFlag flag) {
-		return set(flag, null);
+	public void set(UpdateFlag... updateFlags) {
+		for(UpdateFlag flag : updateFlags) {
+			set(flag, null);
+		}
 	}
 	
-	public boolean set(UpdateFlag flag, UpdateBlockData blockData) {
-		if(flags.contains(flag)) {
-			return false;
+	public void set(UpdateFlag flag, UpdateBlockData blockData) {
+		if(!flags.contains(flag)) {
+			flags.add(flag);
+			getBlock(flag).setBlockData(blockData);
 		}
-		flags.add(flag);
-		getBlock(flag).setBlockData(blockData);
-		return true;
 	}
 	
 	public boolean isSet(UpdateFlag flag) {
