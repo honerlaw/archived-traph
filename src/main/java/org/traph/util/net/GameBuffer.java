@@ -16,7 +16,11 @@ public class GameBuffer {
 	private int position;
 	
 	public static GameBuffer buffer() {
-		return new GameBuffer();
+		return new GameBuffer(null);
+	}
+	
+	public static GameBuffer buffer(Buffer buffer) {
+		return new GameBuffer(buffer);
 	}
 	
 	public static GameBuffer fixed(int opcode) {
@@ -31,13 +35,13 @@ public class GameBuffer {
 		return new GameBuffer(opcode, Type.VARIABLE_SHORT);
 	}
 	
-	private GameBuffer() {
-		this.buffer = Buffer.buffer();
+	private GameBuffer(Buffer buffer) {
+		this.buffer = buffer == null ? Buffer.buffer() : buffer;
 		this.type = Type.FIXED;
 	}
 	
 	private GameBuffer(int opcode, Type type) {
-		this();
+		this(null);
 		put(opcode);
 		this.type = type;
 		if(type == Type.VARIABLE_BYTE) {

@@ -1,14 +1,19 @@
 package org.traph.rs.net.worker;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.traph.rs.net.Client;
+import org.traph.rs.net.packet.Packet;
 import org.traph.util.Constant;
+import org.traph.util.net.GameBuffer;
 
 import io.netty.buffer.ByteBuf;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 
-public class Decoder implements Handler<Future<Buffer>> {
+public class Decoder implements Handler<Future<List<Packet>>> {
 
 	private final Client client;
 	private final Buffer request;
@@ -19,17 +24,21 @@ public class Decoder implements Handler<Future<Buffer>> {
 	}
 	
 	@Override
-	public void handle(Future<Buffer> future) {
+	public void handle(Future<List<Packet>> future) {
 		ByteBuf buf = request.getByteBuf();
 		
-		int opcode = -1;
-		int size = -1;
+		
+		List<Packet> packets = new ArrayList<Packet>();
 		
 		while(buf.isReadable()) {
+			
+			int opcode = -1;
+			int size = -1;
+			
 			// read opcode
 			if(opcode == -1) {
 				opcode = buf.readByte() & 0xFF;
-				opcode = opcode - client.getIsaacDecoder().nextInt() & 0xFF;
+				opcode = (opcode - client.getIsaacDecoder().nextInt()) & 0xFF;
 			}
 			
 			// read size
@@ -43,21 +52,11 @@ public class Decoder implements Handler<Future<Buffer>> {
 				}
 			}
 			
-			for(int i = 0; i < buf.readableBytes(); ++i) {
-				buf.readByte();
-			}
 			
-			// get the payload
-			//buf.readBytes(size);
-			
-			// display the packet and its size
-			//System.out.println(opcode + " " + size);
-			
-			// loop through all of the registered packet listeners
-			// and notify them that a packet has come in
+			packets.add(new Packet(opcode, size, GameBuffer.buffer(Buffer.buffer(buf.readBytes(size)))));
 		}
 		
-		future.complete();
+		future.complete(packets);
 
 	}
 

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.traph.rs.World;
 import org.traph.rs.net.Client;
 import org.traph.rs.net.packet.Packet;
 
@@ -43,12 +44,15 @@ public class ScriptLoader {
 	
 	private final Vertx vertx;
 	
+	private final Script script;
+	
 	private final GroovyScriptEngine scriptEngine;
 	
 	private final Map<Integer, List<String>> scriptListeners;
 	
-	public ScriptLoader(Vertx vertx, String path) throws Exception {
-		this.vertx = vertx;
+	public ScriptLoader(World world, String path) throws Exception {
+		this.vertx = world.getVertx();
+		this.script = new Script(world);
 		this.scriptEngine = new GroovyScriptEngine(path);
 		this.scriptListeners = new HashMap<Integer, List<String>>();
 		this.load(path);
@@ -61,8 +65,7 @@ public class ScriptLoader {
 				Binding binding = new Binding();
 				binding.setVariable("client", client);
 				binding.setVariable("packet", packet);
-				//TODO: add binding to world or something similar so we can access other
-				// parts of the game engine
+				binding.setVariable("script", script);
 				try {
 					scriptEngine.run(listener, binding);
 				} catch (ResourceException | ScriptException e) {
@@ -70,7 +73,7 @@ public class ScriptLoader {
 				}
 			}
 		} else {
-			System.err.println("Script not found for packet: " + packet.getOpcode());
+			System.err.println("No scripts listening for packet: " + packet.getOpcode());
 		}
 	}
 	
@@ -88,7 +91,7 @@ public class ScriptLoader {
 					for(int packet : packets) {
 						List<String> listeners = scriptListeners.putIfAbsent(packet, new ArrayList<String>());
 						if(listeners == null) {
-							listeners = scriptListeners.get(packets);
+							listeners = scriptListeners.get(packet);
 						}
 						listeners.add(file);
 					}

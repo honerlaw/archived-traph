@@ -43,7 +43,7 @@ public class World extends AbstractVerticle {
 		
 		// load all of the scripts
 		try {
-			scriptLoader = new ScriptLoader(getVertx(), "data/scripts");
+			scriptLoader = new ScriptLoader(this, "data/scripts");
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -125,7 +125,9 @@ public class World extends AbstractVerticle {
 					case GAME:		
 						getVertx().executeBlocking(new Decoder(client, buf), res -> {
 							if(res.result() != null) {
-								sock.write(res.result());
+								res.result().forEach(packet -> {
+									getScriptLoader().execute(client, packet);
+								});
 							}
 						});
 						break;
@@ -183,6 +185,10 @@ public class World extends AbstractVerticle {
 	
 	public List<Client> getClients() {
 		return Collections.synchronizedList(Arrays.asList(clients));
+	}
+	
+	public ScriptLoader getScriptLoader() {
+		return scriptLoader;
 	}
 	
 	public static void main(String[] args) {
