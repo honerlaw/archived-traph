@@ -1,6 +1,7 @@
 package org.traph.rs.net.packet;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.traph.rs.World;
 import org.traph.rs.model.player.Player;
@@ -30,8 +31,6 @@ public class Dispatcher {
 	}
 	
 	public Dispatcher playerUpdate(World world) {
-		
-		System.out.println("called");
 		
 		// Get the GameData and Player
 		GameData data = client.getGameData();
@@ -68,8 +67,11 @@ public class Dispatcher {
 			}
 		}
 		
+		List<Client> clients = world.getClients();
+		
 		// Loop through all of the players in the world and see if more have come into view
-		for(Client other : world.getClients()) {
+		for(Iterator<Client> it = clients.iterator(); it.hasNext(); ) {
+			Client other = it.next();
 			if(data.getLocalPlayers().size() >= 255) {
 				break;
 			}

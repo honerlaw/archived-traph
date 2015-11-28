@@ -111,9 +111,7 @@ public class Login implements Handler<Future<Buffer>> {
 		client.getDispatcher()
 			.login(2, 2, 0) // send login response
 			.mapRegion(); // send map region position
-		
-		// we successfully made it here so we technically "logged in"
-		// TODO: load player data here
+	
 		future.complete();
 	}
 

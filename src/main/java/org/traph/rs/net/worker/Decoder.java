@@ -43,8 +43,12 @@ public class Decoder implements Handler<Future<Buffer>> {
 				}
 			}
 			
+			for(int i = 0; i < buf.readableBytes(); ++i) {
+				buf.readByte();
+			}
+			
 			// get the payload
-			buf.readBytes(size);
+			//buf.readBytes(size);
 			
 			// display the packet and its size
 			//System.out.println(opcode + " " + size);
@@ -54,6 +58,7 @@ public class Decoder implements Handler<Future<Buffer>> {
 		}
 		
 		future.complete();
+
 	}
 
 }

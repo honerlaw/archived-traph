@@ -1,8 +1,12 @@
 package org.traph.rs;
 
 import java.io.FileNotFoundException;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.traph.fs.FileSystem;
 import org.traph.rs.net.Client;
@@ -20,7 +24,7 @@ public class World extends AbstractVerticle {
 	
 	private FileSystem fileSystem;
 	
-	private final Map<NetSocket, Client> clientMap = new HashMap<NetSocket, Client>();
+	private final Map<NetSocket, Client> clientMap = new ConcurrentHashMap<NetSocket, Client>();
 	
 	private final Client[] clients = new Client[2048];
 	
@@ -64,6 +68,8 @@ public class World extends AbstractVerticle {
 			// handle incoming data
 			sock.handler(buf -> {
 				
+				buf = buf.copy();
+				
 				// set / get the client for the socket
 				Client tempClient = clientMap.putIfAbsent(sock, new Client(sock));
 				if(tempClient == null) {
@@ -76,10 +82,8 @@ public class World extends AbstractVerticle {
 					case HANDSHAKE:
 						switch(buf.getByte(0) & 0xFF) {
 							case Constant.HandShake.LOGIN_REQUEST:
-								
-								// execute blocking because Constant.RANDOM.nextLong can take a while
-								getVertx().executeBlocking(future -> {
-									future.complete(Constant.RANDOM.nextLong());
+								getVertx().executeBlocking(fut -> {
+									fut.complete(Constant.RANDOM.nextLong());
 								}, res -> {
 									client.setServerSeed((long) res.result());
 									client.setState(State.LOGIN);
@@ -99,7 +103,6 @@ public class World extends AbstractVerticle {
 						}
 						break;
 					case LOGIN:
-						// handle login
 						getVertx().executeBlocking(new Login(client, buf), res -> {
 							if(client.getState() == State.GAME) {
 								register(client);
@@ -109,12 +112,10 @@ public class World extends AbstractVerticle {
 							}
 						});
 						break;
-					case GAME:						
-						// decode packets
+					case GAME:		
 						getVertx().executeBlocking(new Decoder(client, buf), res -> {
-							Buffer result = res.result();
-							if(result != null) {
-								sock.write(result);
+							if(res.result() != null) {
+								sock.write(res.result());
 							}
 						});
 						break;
@@ -125,26 +126,37 @@ public class World extends AbstractVerticle {
 		
 		// update the world every 600 ms
 		getVertx().setPeriodic(600, id -> {
+			
+			getVertx().executeBlocking(fut -> {
 				
-			// we update each client in the world
-			for(Client client : clients) {
-				if(client == null) {
-					continue;
+				List<Client> clients = getClients();
+				for(Iterator<Client> it = clients.iterator(); it.hasNext(); ) {
+					Client client = it.next();
+					if(client == null) {
+						continue;
+					}
+					client.getDispatcher().playerUpdate(World.this);
+					client.getGameData().getPlayer().reset();
 				}
 				
-				client.getDispatcher().playerUpdate(World.this);
-				client.getGameData().getPlayer().reset();
-			}
+			}, res -> {
+				if(res.failed()) {
+					res.cause().printStackTrace();
+				}
+			});
+		
 		});
 		
 	}
 	
 	public boolean register(Client client) {
-		for(int i = 0; i < clients.length; ++i) {
-			if(clients[i] == null) {
-				clients[i] = client;
-				client.getGameData().getPlayer().setIndex(i);
-				return true;
+		synchronized(clients) {
+			for(int i = 0; i < clients.length; ++i) {
+				if(clients[i] == null) {
+					clients[i] = client;
+					client.getGameData().getPlayer().setIndex(i);
+					return true;
+				}
 			}
 		}
 		return false;
@@ -154,11 +166,13 @@ public class World extends AbstractVerticle {
 		if(client.getGameData().getPlayer() == null || client.getGameData().getPlayer().getIndex() == -1) {
 			return;
 		}
-		clients[client.getGameData().getPlayer().getIndex()] = null;
+		synchronized(clients) {
+			clients[client.getGameData().getPlayer().getIndex()] = null;
+		}
 	}
 	
-	public Client[] getClients() {
-		return clients;
+	public List<Client> getClients() {
+		return Collections.synchronizedList(Arrays.asList(clients));
 	}
 	
 	public static void main(String[] args) {
