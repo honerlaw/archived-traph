@@ -12,6 +12,7 @@ import org.traph.fs.FileSystem;
 import org.traph.rs.net.Client;
 import org.traph.rs.net.worker.Decoder;
 import org.traph.rs.net.worker.Login;
+import org.traph.rs.script.ScriptLoader;
 import org.traph.util.Constant;
 import org.traph.util.Constant.Client.State;
 
@@ -24,6 +25,8 @@ public class World extends AbstractVerticle {
 	
 	private FileSystem fileSystem;
 	
+	private ScriptLoader scriptLoader;
+	
 	private final Map<NetSocket, Client> clientMap = new ConcurrentHashMap<NetSocket, Client>();
 	
 	private final Client[] clients = new Client[2048];
@@ -35,6 +38,13 @@ public class World extends AbstractVerticle {
 		try {
 			fileSystem = new FileSystem(getVertx(), "data/cache");
 		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		// load all of the scripts
+		try {
+			scriptLoader = new ScriptLoader(getVertx(), "data/scripts");
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
 		
