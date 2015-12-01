@@ -4,11 +4,14 @@ import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.traph.fs.FileSystem;
+import org.traph.rs.game.ActionManager;
 import org.traph.rs.net.Client;
 import org.traph.rs.net.worker.Decoder;
 import org.traph.rs.net.worker.Login;
@@ -30,6 +33,8 @@ public class World extends AbstractVerticle {
 	private final Map<NetSocket, Client> clientMap = new ConcurrentHashMap<NetSocket, Client>();
 	
 	private final Client[] clients = new Client[2048];
+	
+	private final List<ActionManager> actions = Collections.synchronizedList(new LinkedList<ActionManager>());
 	
 	@Override
 	public void start() {
@@ -81,7 +86,7 @@ public class World extends AbstractVerticle {
 				buf = buf.copy();
 				
 				// set / get the client for the socket
-				Client tempClient = clientMap.putIfAbsent(sock, new Client(sock));
+				Client tempClient = clientMap.putIfAbsent(sock, new Client(sock, this));
 				if(tempClient == null) {
 					tempClient = clientMap.get(sock);
 				}
@@ -141,6 +146,23 @@ public class World extends AbstractVerticle {
 			
 			getVertx().executeBlocking(fut -> {
 				
+				// loop through actions and execute them
+				for(ListIterator<ActionManager> it = getActionManagers().listIterator(); it.hasNext(); ) {
+					Action action = it.next().getNext();
+					if(!action.isCancelled()) {
+						try {
+							Action next = action.execute();
+							if(next != null) {
+								it.add(next);
+							}
+						} catch(Exception e) {
+							e.printStackTrace();
+						}
+ 					}
+					it.remove();
+				}
+				
+				
 				List<Client> clients = getClients();
 				for(Iterator<Client> it = clients.iterator(); it.hasNext(); ) {
 					Client client = it.next();
@@ -184,7 +206,11 @@ public class World extends AbstractVerticle {
 	}
 	
 	public List<Client> getClients() {
-		return Collections.synchronizedList(Arrays.asList(clients));
+		return Arrays.asList(clients);
+	}
+	
+	public List<ActionManager> getActionManagers() {
+		return actions;
 	}
 	
 	public ScriptLoader getScriptLoader() {

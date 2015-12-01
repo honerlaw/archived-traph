@@ -1,5 +1,6 @@
 package org.traph.rs.net;
 
+import org.traph.rs.World;
 import org.traph.rs.net.packet.Dispatcher;
 import org.traph.util.Constant.Client.State;
 import org.traph.util.security.IsaacRandomGen;
@@ -17,9 +18,9 @@ public class Client {
 	private IsaacRandomGen isaacEncoder;
 	private GameData gameData;
 	
-	public Client(NetSocket socket) {
+	public Client(NetSocket socket, World world) {
 		this.socket = socket;
-		this.gameData = new GameData();
+		this.gameData = new GameData(world);
 		this.dispatcher = new Dispatcher(this);
 	}
 	
