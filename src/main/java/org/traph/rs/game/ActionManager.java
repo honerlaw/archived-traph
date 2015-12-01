@@ -1,7 +1,8 @@
 package org.traph.rs.game;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Iterator;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.traph.rs.World;
 import org.traph.rs.net.Client;
@@ -21,28 +22,96 @@ import org.traph.rs.net.Client;
  */
 public class ActionManager {
 	
-	public static enum Type {
+	public static enum ActionType {
 		BASIC, WALK
 	}
 	
 	private final Client client;
 	private final World world;
-	private final Map<Type, Action> actions;
+	
+	private final Queue<ActionHandler> actions;
 	
 	public ActionManager(Client client, World world) {
 		this.client = client;
 		this.world = world;
-		this.actions = new HashMap<Type, Action>();
+		this.actions = new LinkedBlockingQueue<ActionHandler>();	
 	}
 	
-	public ActionManager add(Action action) {
-		
+	public ActionManager cancel(ActionType type) {
+		for(Iterator<ActionHandler> it = actions.iterator(); it.hasNext(); ) {
+			ActionHandler handler = it.next();
+			if(handler.getType() == type) {
+				handler.setCancelled(true);
+			}
+		}
 		return this;
 	}
 	
-	public Action getNext() {
+	public ActionManager cancel() {
+		for(Iterator<ActionHandler> it = actions.iterator(); it.hasNext(); ) {
+			it.next().setCancelled(true);
+		}
+		return this;
+	}
+	
+	public ActionManager remove(ActionType type) {
+		for(Iterator<ActionHandler> it = actions.iterator(); it.hasNext(); ) {
+			ActionHandler handler = it.next();
+			if(handler.getType() == type) {
+				it.remove();
+			}
+		}
+		return this;
+	}
+	
+	public ActionManager empty() {
+		for(Iterator<ActionHandler> it = actions.iterator(); it.hasNext(); ) {
+			it.remove();
+		}
+		return this;
+	}
+	
+	public boolean add(ActionHandler actionHandler) {
+		// if the action already exists then we don't add it
+		for(Iterator<ActionHandler> it = actions.iterator(); it.hasNext(); ) {
+			if(it.next().getType() == actionHandler.getType()) {
+				return false;
+			}
+		}
 		
-		return null;
+		// add the action and register it with the world
+		world.getActionManagers().add(this);
+		actions.add(actionHandler);
+		return true;
+	}
+	
+	public void execute() {
+		ActionHandler handler = actions.peek();
+		if(handler == null) {
+			return;
+		}
+		if(handler.isExecuted()) {
+			if(handler.getPostDelay() <= 0) {
+				actions.remove(handler);
+			} else {
+				handler.setPostDelay(handler.getPostDelay() - 1);
+			}
+		} else {
+			if(handler.getInitialDelay() <= 0) {
+				if(!handler.isCancelled()) {
+					ActionHandler next = handler.getAction().execute(new ActionData(world, client));
+					handler.setExecuted(true);
+					if(next != null) {
+						add(next);
+					}
+				}
+				if(handler.getPostDelay() <= 0) {
+					actions.remove(handler);
+				}
+			} else {
+				handler.setInitialDelay(handler.getInitialDelay() - 1);
+			}
+		}
 	}
 
 }

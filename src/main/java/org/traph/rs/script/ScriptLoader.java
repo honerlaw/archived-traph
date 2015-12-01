@@ -82,6 +82,10 @@ public class ScriptLoader {
 			if(new File(file).isDirectory()) {				
 				load(file);
 			} else {
+				if(!file.endsWith(".groovy")) {
+					return;
+				}
+				file = file.split("scripts")[1].substring(1);
 				Class<?> clazz = getScriptClass(file);
 				if(clazz == null) {
 					return;
